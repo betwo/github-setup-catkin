@@ -1,0 +1,16 @@
+---
+name: 'Setup catkin'
+description: 'Set up ROS 1 and catkin and add the command-line tools to the PATH.'
+author: 'betwo'
+inputs:
+  ros-version:
+    description: "Version range or exact version of ROS version to use, using SemVer's version range syntax."
+    default: 'melodic'
+  workspace:
+    description: "Root directory of the catkin workspace"
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+branding:
+  icon: 'code'
+  color: 'yellow'
