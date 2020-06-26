@@ -421,8 +421,7 @@ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31
 sudo apt-get update &&
 sudo apt-get -qq update -y && sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python-catkin-pkg python-rosdep -y &&
 sudo rosdep init &&
-rosdep update
-`;
+rosdep update`;
         child_process.execSync(command, { stdio: 'inherit' });
     });
 }
