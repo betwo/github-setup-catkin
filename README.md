@@ -12,9 +12,51 @@ This includes
 
 # Usage
 
-See [action.yml](action.yml)
+See [action.yml](action.yml) for available parameters.
 
-Example using with two different compilers:
+## Example with a repository containing single package or  (top-level `package.xml`) or a full catkin workspace (`src`, `devel`, `build` are top-level)
+
+```yaml
+runs-on: [ubuntu-18.04]
+steps:
+- uses: actions/checkout@v1
+- uses: betwo/github-setup-catkin@v1.1.1
+  with:
+    ros-version: 'melodic'
+    workspace: '$GITHUB_WORKSPACE'
+- run: catkin_make_isolated
+```
+
+## Example using a custom catkin workspace setup process (see also e.g. [here](https://github.com/betwo/csapex_core_plugins/blob/master/.github/workflows/catkin_make_isolated.yml):
+
+```yaml
+runs-on: [ubuntu-18.04]
+steps:
+- uses: actions/checkout@v1
+  with:
+    path: wworkspace/src/my_package
+- uses: betwo/github-setup-catkin@v1.1.1
+  with:
+    ros-version: 'melodic'
+    workspace: '$GITHUB_WORKSPACE'
+- name: clone_dependencies
+  run: |
+    cd ..
+    # clone more dependencies into the workspace, e.g.
+    git clone https://github.com/betwo/csapex
+    # ...
+- uses: betwo/github-setup-catkin@v1.1.1
+  with:
+    ros-version: 'kinetic'
+    workspace: $HOME/work/my-repo-name/workspace
+- name: build
+  run: |
+    cd $HOME/work/my-repo-name/workspace
+    catkin_make_isolated
+```
+
+## Example using with two different compilers:
+
 ```yaml
 runs-on: [ubuntu-18.04]
 strategy:
@@ -22,7 +64,7 @@ strategy:
     compiler: ["/usr/bin/g++", "/usr/bin/clang++"]
 steps:
 - uses: actions/checkout@v1
-- uses: betwo/github-setup-catkin@v1.0.0
+- uses: betwo/github-setup-catkin@v1.1.1
   with:
     ros-version: 'melodic'
     workspace: '$GITHUB_WORKSPACE'

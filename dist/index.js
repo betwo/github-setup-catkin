@@ -19,7 +19,13 @@ module.exports =
 /******/ 		};
 /******/
 /******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 		var threw = true;
+/******/ 		try {
+/******/ 			modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 			threw = false;
+/******/ 		} finally {
+/******/ 			if(threw) delete installedModules[moduleId];
+/******/ 		}
 /******/
 /******/ 		// Flag the module as loaded
 /******/ 		module.l = true;
@@ -34,7 +40,7 @@ module.exports =
 /******/ 	// the startup function
 /******/ 	function startup() {
 /******/ 		// Load entry module and return exports
-/******/ 		return __webpack_require__(853);
+/******/ 		return __webpack_require__(557);
 /******/ 	};
 /******/
 /******/ 	// run startup
@@ -50,49 +56,6 @@ module.exports = require("os");
 
 /***/ }),
 
-/***/ 111:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const path = __importStar(__webpack_require__(622));
-const core = __importStar(__webpack_require__(572));
-const fs = __webpack_require__(747);
-function findCatkinVersion(version, prefix = '/opt') {
-    return __awaiter(this, void 0, void 0, function* () {
-        let _binDir = `${prefix}/ros/${version}/bin/`;
-        if (!fs.existsSync(_binDir)) {
-            // PyPy not installed in $(Agent.ToolsDirectory)
-            throw new Error(`ROS version ${version} not found`);
-        }
-        let _rosPrefix = path.dirname(_binDir);
-        core.exportVariable('ros_prefix', _rosPrefix);
-        core.addPath(_binDir);
-        return path.basename(_rosPrefix);
-    });
-}
-exports.findCatkinVersion = findCatkinVersion;
-
-
-/***/ }),
-
 /***/ 129:
 /***/ (function(module) {
 
@@ -100,80 +63,7 @@ module.exports = require("child_process");
 
 /***/ }),
 
-/***/ 209:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-const os = __webpack_require__(87);
-/**
- * Commands
- *
- * Command Format:
- *   ##[name key=value;key=value]message
- *
- * Examples:
- *   ##[warning]This is the user warning message
- *   ##[set-secret name=mypassword]definitelyNotAPassword!
- */
-function issueCommand(command, properties, message) {
-    const cmd = new Command(command, properties, message);
-    process.stdout.write(cmd.toString() + os.EOL);
-}
-exports.issueCommand = issueCommand;
-function issue(name, message = '') {
-    issueCommand(name, {}, message);
-}
-exports.issue = issue;
-const CMD_STRING = '::';
-class Command {
-    constructor(command, properties, message) {
-        if (!command) {
-            command = 'missing.command';
-        }
-        this.command = command;
-        this.properties = properties;
-        this.message = message;
-    }
-    toString() {
-        let cmdStr = CMD_STRING + this.command;
-        if (this.properties && Object.keys(this.properties).length > 0) {
-            cmdStr += ' ';
-            for (const key in this.properties) {
-                if (this.properties.hasOwnProperty(key)) {
-                    const val = this.properties[key];
-                    if (val) {
-                        // safely append the val - avoid blowing up when attempting to
-                        // call .replace() if message is not a string for some reason
-                        cmdStr += `${key}=${escape(`${val || ''}`)},`;
-                    }
-                }
-            }
-        }
-        cmdStr += CMD_STRING;
-        // safely append the message - avoid blowing up when attempting to
-        // call .replace() if message is not a string for some reason
-        const message = `${this.message || ''}`;
-        cmdStr += escapeData(message);
-        return cmdStr;
-    }
-}
-function escapeData(s) {
-    return s.replace(/\r/g, '%0D').replace(/\n/g, '%0A');
-}
-function escape(s) {
-    return s
-        .replace(/\r/g, '%0D')
-        .replace(/\n/g, '%0A')
-        .replace(/]/g, '%5D')
-        .replace(/;/g, '%3B');
-}
-//# sourceMappingURL=command.js.map
-
-/***/ }),
-
-/***/ 572:
+/***/ 310:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -188,7 +78,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const command_1 = __webpack_require__(209);
+const command_1 = __webpack_require__(997);
 const os = __webpack_require__(87);
 const path = __webpack_require__(622);
 /**
@@ -375,21 +265,7 @@ exports.getState = getState;
 
 /***/ }),
 
-/***/ 622:
-/***/ (function(module) {
-
-module.exports = require("path");
-
-/***/ }),
-
-/***/ 747:
-/***/ (function(module) {
-
-module.exports = require("fs");
-
-/***/ }),
-
-/***/ 853:
+/***/ 557:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -411,48 +287,49 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(__webpack_require__(572));
-const finder = __importStar(__webpack_require__(111));
+const core = __importStar(__webpack_require__(310));
+const finder = __importStar(__webpack_require__(723));
 const child_process = __webpack_require__(129);
 function installRos(version) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let command = `sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
+    let command = `sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
 sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
 sudo apt-get update &&
-sudo apt-get -qq update -y && sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python-catkin-pkg python-rosdep -y &&
+sudo apt-get -qq update -y &&
+( sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python3-catkin-pkg python3-rosdep -y ||
+sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python-catkin-pkg python-rosdep -y ; ) &&
 sudo rosdep init &&
 rosdep update`;
-        child_process.execSync(command, { stdio: 'inherit' });
-    });
+    child_process.execSync(command, { stdio: 'inherit' });
 }
 function rosdepInstall(workspace_root, version) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let command = `. /opt/ros/${version}/setup.sh &&
+    let command = `. /opt/ros/${version}/setup.sh &&
 cd ${workspace_root} &&
-rosdep install --from-paths -i -y src`;
-        child_process.execSync(command, { stdio: 'inherit' });
-    });
+rosdep install --from-paths --reinstall --ignore-packages-from-source --default-yes --verbose .`;
+    child_process.execSync(command, { stdio: 'inherit' });
 }
 function sourceWorkspace(workspace_root, version) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let command = `. /opt/ros/${version}/setup.sh &&
+    let command = `. /opt/ros/${version}/setup.sh &&
 cd ${workspace_root} &&
-catkin_init_workspace &&
+if [ -f package.xml ]; then
+  mkdir tmp-src;
+  mv * tmp-src;
+  mv tmp-src src;
+fi
+  catkin_init_workspace;
 env`;
-        let options = {
-            encoding: 'utf8'
-        };
-        let env = child_process.execSync(command, options);
-        console.log(`Environment: ${env}`);
-        let assignments = env.split(/\n/);
-        for (let assignment of assignments) {
-            let [name, value] = assignment.split('=');
-            if (name !== undefined && value !== undefined) {
-                console.log(`${name} = ${value}`);
-                core.exportVariable(name, value);
-            }
+    let options = {
+        encoding: 'utf8'
+    };
+    let env = child_process.execSync(command, options);
+    console.log(`Environment: ${env}`);
+    let assignments = env.split(/\n/);
+    for (let assignment of assignments) {
+        let [name, value] = assignment.split('=');
+        if (name !== undefined && value !== undefined) {
+            console.log(`${name} = ${value}`);
+            core.exportVariable(name, value);
         }
-    });
+    }
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -491,6 +368,136 @@ function run() {
 }
 run();
 
+
+/***/ }),
+
+/***/ 622:
+/***/ (function(module) {
+
+module.exports = require("path");
+
+/***/ }),
+
+/***/ 723:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const path = __importStar(__webpack_require__(622));
+const core = __importStar(__webpack_require__(310));
+const fs = __webpack_require__(747);
+function findCatkinVersion(version, prefix = '/opt') {
+    return __awaiter(this, void 0, void 0, function* () {
+        let _binDir = `${prefix}/ros/${version}/bin/`;
+        if (!fs.existsSync(_binDir)) {
+            // PyPy not installed in $(Agent.ToolsDirectory)
+            throw new Error(`ROS version ${version} not found`);
+        }
+        let _rosPrefix = path.dirname(_binDir);
+        core.exportVariable('ros_prefix', _rosPrefix);
+        core.addPath(_binDir);
+        return path.basename(_rosPrefix);
+    });
+}
+exports.findCatkinVersion = findCatkinVersion;
+
+
+/***/ }),
+
+/***/ 747:
+/***/ (function(module) {
+
+module.exports = require("fs");
+
+/***/ }),
+
+/***/ 997:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const os = __webpack_require__(87);
+/**
+ * Commands
+ *
+ * Command Format:
+ *   ##[name key=value;key=value]message
+ *
+ * Examples:
+ *   ##[warning]This is the user warning message
+ *   ##[set-secret name=mypassword]definitelyNotAPassword!
+ */
+function issueCommand(command, properties, message) {
+    const cmd = new Command(command, properties, message);
+    process.stdout.write(cmd.toString() + os.EOL);
+}
+exports.issueCommand = issueCommand;
+function issue(name, message = '') {
+    issueCommand(name, {}, message);
+}
+exports.issue = issue;
+const CMD_STRING = '::';
+class Command {
+    constructor(command, properties, message) {
+        if (!command) {
+            command = 'missing.command';
+        }
+        this.command = command;
+        this.properties = properties;
+        this.message = message;
+    }
+    toString() {
+        let cmdStr = CMD_STRING + this.command;
+        if (this.properties && Object.keys(this.properties).length > 0) {
+            cmdStr += ' ';
+            for (const key in this.properties) {
+                if (this.properties.hasOwnProperty(key)) {
+                    const val = this.properties[key];
+                    if (val) {
+                        // safely append the val - avoid blowing up when attempting to
+                        // call .replace() if message is not a string for some reason
+                        cmdStr += `${key}=${escape(`${val || ''}`)},`;
+                    }
+                }
+            }
+        }
+        cmdStr += CMD_STRING;
+        // safely append the message - avoid blowing up when attempting to
+        // call .replace() if message is not a string for some reason
+        const message = `${this.message || ''}`;
+        cmdStr += escapeData(message);
+        return cmdStr;
+    }
+}
+function escapeData(s) {
+    return s.replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+}
+function escape(s) {
+    return s
+        .replace(/\r/g, '%0D')
+        .replace(/\n/g, '%0A')
+        .replace(/]/g, '%5D')
+        .replace(/;/g, '%3B');
+}
+//# sourceMappingURL=command.js.map
 
 /***/ })
 

@@ -2,28 +2,33 @@ import * as core from '@actions/core';
 import * as finder from './find-catkin';
 import child_process = require('child_process');
 
-async function installRos(version: string) {
+function installRos(version: string) {
   let command = `sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
 sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
 sudo apt-get update &&
-sudo apt-get -qq update -y && 
+sudo apt-get -qq update -y &&
 ( sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python3-catkin-pkg python3-rosdep -y ||
 sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python-catkin-pkg python-rosdep -y ; ) &&
 sudo rosdep init &&
 rosdep update`;
   child_process.execSync(command, {stdio: 'inherit'});
 }
-async function rosdepInstall(workspace_root: string, version: string) {
+function rosdepInstall(workspace_root: string, version: string) {
   let command = `. /opt/ros/${version}/setup.sh &&
 cd ${workspace_root} &&
-rosdep install --from-paths -i -y src`;
+rosdep install --from-paths --reinstall --ignore-packages-from-source --default-yes --verbose .`;
   child_process.execSync(command, {stdio: 'inherit'});
 }
 
-async function sourceWorkspace(workspace_root: string, version: string) {
+function sourceWorkspace(workspace_root: string, version: string) {
   let command = `. /opt/ros/${version}/setup.sh &&
 cd ${workspace_root} &&
-catkin_init_workspace &&
+if [ -f package.xml ]; then
+  mkdir tmp-src;
+  mv * tmp-src;
+  mv tmp-src src;
+fi
+  catkin_init_workspace;
 env`;
   let options: child_process.ExecSyncOptionsWithStringEncoding = {
     encoding: 'utf8'
