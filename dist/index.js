@@ -34,7 +34,7 @@ module.exports =
 /******/ 	// the startup function
 /******/ 	function startup() {
 /******/ 		// Load entry module and return exports
-/******/ 		return __webpack_require__(280);
+/******/ 		return __webpack_require__(853);
 /******/ 	};
 /******/
 /******/ 	// run startup
@@ -50,14 +50,7 @@ module.exports = require("os");
 
 /***/ }),
 
-/***/ 129:
-/***/ (function(module) {
-
-module.exports = require("child_process");
-
-/***/ }),
-
-/***/ 280:
+/***/ 111:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -79,91 +72,35 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(__webpack_require__(470));
-const finder = __importStar(__webpack_require__(629));
-const child_process = __webpack_require__(129);
-function installRos(version) {
+const path = __importStar(__webpack_require__(622));
+const core = __importStar(__webpack_require__(572));
+const fs = __webpack_require__(747);
+function findCatkinVersion(version, prefix = '/opt') {
     return __awaiter(this, void 0, void 0, function* () {
-        let command = `sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
-sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
-sudo apt-get update &&
-sudo apt-get -qq update -y && sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python-catkin-pkg -y &&
-sudo rosdep init &&
-rosdep update
-`;
-        child_process.execSync(command, { stdio: 'inherit' });
-    });
-}
-function rosdepInstall(workspace_root, version) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let command = `. /opt/ros/${version}/setup.sh &&
-cd ${workspace_root} &&
-rosdep install --from-paths -i -y src`;
-        child_process.execSync(command, { stdio: 'inherit' });
-    });
-}
-function sourceWorkspace(workspace_root, version) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let command = `. /opt/ros/${version}/setup.sh &&
-cd ${workspace_root} &&
-catkin_init_workspace &&
-env`;
-        let options = {
-            encoding: 'utf8'
-        };
-        let env = child_process.execSync(command, options);
-        console.log(`Environment: ${env}`);
-        let assignments = env.split(/\n/);
-        for (let assignment of assignments) {
-            let [name, value] = assignment.split('=');
-            if (name !== undefined && value !== undefined) {
-                console.log(`${name} = ${value}`);
-                core.exportVariable(name, value);
-            }
+        let _binDir = `${prefix}/ros/${version}/bin/`;
+        if (!fs.existsSync(_binDir)) {
+            // PyPy not installed in $(Agent.ToolsDirectory)
+            throw new Error(`ROS version ${version} not found`);
         }
+        let _rosPrefix = path.dirname(_binDir);
+        core.exportVariable('ros_prefix', _rosPrefix);
+        core.addPath(_binDir);
+        return path.basename(_rosPrefix);
     });
 }
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            let workspace_root = core.getInput('workspace');
-            if (!workspace_root) {
-                throw Error(`The workspace root must be specified via 'workspace'.`);
-            }
-            let requested_version = core.getInput('ros-version');
-            if (!requested_version) {
-                requested_version = 'melodic';
-            }
-            let installed_version;
-            try {
-                console.log(`Checking if ROS ${requested_version} is installed`);
-                installed_version = yield finder.findCatkinVersion(requested_version);
-            }
-            catch (error) {
-                console.log(`Installing ROS ${requested_version}`);
-                installRos(requested_version);
-                installed_version = yield finder.findCatkinVersion(requested_version);
-            }
-            console.log(`ROS ${installed_version} is installed`);
-            if (installed_version !== requested_version) {
-                throw Error(`Installed ROS version '${installed_version}' is not '${requested_version}'`);
-            }
-            console.log(`Installing rosdep dependencies`);
-            rosdepInstall(workspace_root, installed_version);
-            console.log(`Sourcing workspace`);
-            sourceWorkspace(workspace_root, installed_version);
-        }
-        catch (err) {
-            core.setFailed(err.message);
-        }
-    });
-}
-run();
+exports.findCatkinVersion = findCatkinVersion;
 
 
 /***/ }),
 
-/***/ 431:
+/***/ 129:
+/***/ (function(module) {
+
+module.exports = require("child_process");
+
+/***/ }),
+
+/***/ 209:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -236,7 +173,7 @@ function escape(s) {
 
 /***/ }),
 
-/***/ 470:
+/***/ 572:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -251,7 +188,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const command_1 = __webpack_require__(431);
+const command_1 = __webpack_require__(209);
 const os = __webpack_require__(87);
 const path = __webpack_require__(622);
 /**
@@ -445,7 +382,14 @@ module.exports = require("path");
 
 /***/ }),
 
-/***/ 629:
+/***/ 747:
+/***/ (function(module) {
+
+module.exports = require("fs");
+
+/***/ }),
+
+/***/ 853:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -467,31 +411,86 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const path = __importStar(__webpack_require__(622));
-const core = __importStar(__webpack_require__(470));
-const fs = __webpack_require__(747);
-function findCatkinVersion(version, prefix = '/opt') {
+const core = __importStar(__webpack_require__(572));
+const finder = __importStar(__webpack_require__(111));
+const child_process = __webpack_require__(129);
+function installRos(version) {
     return __awaiter(this, void 0, void 0, function* () {
-        let _binDir = `${prefix}/ros/${version}/bin/`;
-        if (!fs.existsSync(_binDir)) {
-            // PyPy not installed in $(Agent.ToolsDirectory)
-            throw new Error(`ROS version ${version} not found`);
-        }
-        let _rosPrefix = path.dirname(_binDir);
-        core.exportVariable('ros_prefix', _rosPrefix);
-        core.addPath(_binDir);
-        return path.basename(_rosPrefix);
+        let command = `sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
+sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
+sudo apt-get update &&
+sudo apt-get -qq update -y && sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python-catkin-pkg python-rosdep -y &&
+sudo rosdep init &&
+rosdep update`;
+        child_process.execSync(command, { stdio: 'inherit' });
     });
 }
-exports.findCatkinVersion = findCatkinVersion;
+function rosdepInstall(workspace_root, version) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let command = `. /opt/ros/${version}/setup.sh &&
+cd ${workspace_root} &&
+rosdep install --from-paths -i -y src`;
+        child_process.execSync(command, { stdio: 'inherit' });
+    });
+}
+function sourceWorkspace(workspace_root, version) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let command = `. /opt/ros/${version}/setup.sh &&
+cd ${workspace_root} &&
+catkin_init_workspace &&
+env`;
+        let options = {
+            encoding: 'utf8'
+        };
+        let env = child_process.execSync(command, options);
+        console.log(`Environment: ${env}`);
+        let assignments = env.split(/\n/);
+        for (let assignment of assignments) {
+            let [name, value] = assignment.split('=');
+            if (name !== undefined && value !== undefined) {
+                console.log(`${name} = ${value}`);
+                core.exportVariable(name, value);
+            }
+        }
+    });
+}
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let workspace_root = core.getInput('workspace');
+            if (!workspace_root) {
+                throw Error(`The workspace root must be specified via 'workspace'.`);
+            }
+            let requested_version = core.getInput('ros-version');
+            if (!requested_version) {
+                requested_version = 'melodic';
+            }
+            let installed_version;
+            try {
+                console.log(`Checking if ROS ${requested_version} is installed`);
+                installed_version = yield finder.findCatkinVersion(requested_version);
+            }
+            catch (error) {
+                console.log(`Installing ROS ${requested_version}`);
+                installRos(requested_version);
+                installed_version = yield finder.findCatkinVersion(requested_version);
+            }
+            console.log(`ROS ${installed_version} is installed`);
+            if (installed_version !== requested_version) {
+                throw Error(`Installed ROS version '${installed_version}' is not '${requested_version}'`);
+            }
+            console.log(`Installing rosdep dependencies`);
+            rosdepInstall(workspace_root, installed_version);
+            console.log(`Sourcing workspace`);
+            sourceWorkspace(workspace_root, installed_version);
+        }
+        catch (err) {
+            core.setFailed(err.message);
+        }
+    });
+}
+run();
 
-
-/***/ }),
-
-/***/ 747:
-/***/ (function(module) {
-
-module.exports = require("fs");
 
 /***/ })
 
