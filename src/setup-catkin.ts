@@ -39,7 +39,12 @@ env`;
   let assignments = env.split(/\n/);
   for (let assignment of assignments) {
     let [name, value] = assignment.split('=');
-    if (name !== undefined && value !== undefined) {
+    if (
+      name !== undefined &&
+      name != '' &&
+      value !== undefined &&
+      value != ''
+    ) {
       console.log(`${name} = ${value}`);
       core.exportVariable(name, value);
     }
