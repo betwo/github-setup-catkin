@@ -45,7 +45,6 @@ env`;
       value !== undefined &&
       value != ''
     ) {
-      console.log(`${name} = ${value}`);
       core.exportVariable(name, value);
     }
   }
