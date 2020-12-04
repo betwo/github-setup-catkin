@@ -27,6 +27,20 @@ steps:
 - run: catkin_make_isolated
 ```
 
+## Example of using catkin_tools with a repository containing single package or  (top-level `package.xml`) or a full catkin workspace (`src`, `devel`, `build` are top-level)
+
+```yaml
+runs-on: [ubuntu-18.04]
+steps:
+- uses: actions/checkout@v1
+- uses: betwo/github-setup-catkin@master
+  with:
+    ros-version: 'melodic'
+    build-tool: 'catkin_tools'
+    workspace: '$GITHUB_WORKSPACE'
+- run: catkin build
+```
+
 ## Example using a custom catkin workspace setup process (see also e.g. [here](https://github.com/betwo/csapex_core_plugins/blob/master/.github/workflows/catkin_make_isolated.yml):
 
 ```yaml

@@ -156,13 +156,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const finder = __importStar(__webpack_require__(629));
 const child_process = __webpack_require__(129);
-function installRos(version) {
-    let command = `export ACTIONS_ALLOW_UNSECURE_COMMANDS=true && sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
+function getBuildToolPackages(build_tool) {
+    switch (build_tool) {
+        case 'catkin':
+            return ['python-catkin-pkg', 'python3-catkin-pkg'];
+        case 'catkin_tools':
+            return [
+                'python-catkin-tools',
+                'python3-catkin-tools python3-osrf-pycommon'
+            ];
+        default:
+            throw new Error(`build tool ${build_tool} cannot be installed`);
+    }
+}
+function installRos(version, build_tool) {
+    const [build_tool_py2, build_tool_py3] = getBuildToolPackages(build_tool);
+    const command = `export ACTIONS_ALLOW_UNSECURE_COMMANDS=true && sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
 sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
 sudo apt-get update &&
 sudo apt-get -qq update -y &&
-( sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python3-catkin-pkg python3-rosdep -y ||
-sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base python-catkin-pkg python-rosdep -y ; ) &&
+( sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base ${build_tool_py3} python3-rosdep -y ||
+sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base ${build_tool_py2} python-rosdep -y ; ) &&
 sudo rosdep init &&
 rosdep update`;
     child_process.execSync(command, { stdio: 'inherit' });
@@ -173,15 +187,26 @@ cd ${workspace_root} &&
 rosdep install --from-paths --reinstall --ignore-packages-from-source --default-yes --verbose .`;
     child_process.execSync(command, { stdio: 'inherit' });
 }
-function sourceWorkspace(workspace_root, version) {
-    let command = `. /opt/ros/${version}/setup.sh &&
+function makeInitCommand(build_tool) {
+    switch (build_tool) {
+        case 'catkin':
+            return `catkin_init_workspace`;
+        case 'catkin_tools':
+            return `catkin init`;
+        default:
+            throw new Error(`build tool ${build_tool} cannot be initialized`);
+    }
+}
+function sourceWorkspace(workspace_root, version, build_tool) {
+    const init_workspace_command = makeInitCommand(build_tool);
+    const command = `. /opt/ros/${version}/setup.sh &&
 cd ${workspace_root} &&
 if [ -f package.xml ]; then
   mkdir tmp-src;
   mv * tmp-src;
   mv tmp-src src;
 fi
-  catkin_init_workspace;
+  ${init_workspace_command};
 env`;
     let options = {
         encoding: 'utf8'
@@ -210,6 +235,10 @@ function run() {
             if (!requested_version) {
                 requested_version = 'melodic';
             }
+            let build_tool = core.getInput('build-tool');
+            if (!build_tool) {
+                build_tool = 'catkin';
+            }
             let installed_version;
             try {
                 console.log(`Checking if ROS ${requested_version} is installed`);
@@ -217,7 +246,7 @@ function run() {
             }
             catch (error) {
                 console.log(`Installing ROS ${requested_version}`);
-                installRos(requested_version);
+                installRos(requested_version, build_tool);
                 installed_version = yield finder.findCatkinVersion(requested_version);
             }
             console.log(`ROS ${installed_version} is installed`);
@@ -226,8 +255,8 @@ function run() {
             }
             console.log(`Installing rosdep dependencies`);
             rosdepInstall(workspace_root, installed_version);
-            console.log(`Sourcing workspace`);
-            sourceWorkspace(workspace_root, installed_version);
+            console.log(`Sourcing workspace with build tool ${build_tool}`);
+            sourceWorkspace(workspace_root, installed_version, build_tool);
         }
         catch (err) {
             core.setFailed(err.message);

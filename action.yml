@@ -6,8 +6,14 @@ inputs:
   ros-version:
     description: "Version range or exact version of ROS version to use, using SemVer's version range syntax."
     default: 'melodic'
+    required: false
+  build-tool:
+    description: "Which build tool to use for workspace initialization (*catkin*, catkin_tools)"
+    default: 'catkin'
+    required: false
   workspace:
     description: "Root directory of the catkin workspace"
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'
