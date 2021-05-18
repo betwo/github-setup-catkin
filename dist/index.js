@@ -178,7 +178,7 @@ sudo apt-get -qq update -y &&
 ( sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base ${build_tool_py3} python3-rosdep -y ||
 sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base ${build_tool_py2} python-rosdep -y ; ) &&
 sudo rosdep init &&
-rosdep update`;
+rosdep update --include-eol-distros`;
     child_process.execSync(command, { stdio: 'inherit' });
 }
 function rosdepInstall(workspace_root, version) {
