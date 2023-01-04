@@ -19,14 +19,7 @@ function getBuildToolPackages(build_tool: string): string[] {
 function installRos(version: string, build_tool: string) {
   const [build_tool_py2, build_tool_py3] = getBuildToolPackages(build_tool);
 
-  const command = `export ACTIONS_ALLOW_UNSECURE_COMMANDS=true && sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
-sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
-sudo apt-get update &&
-sudo apt-get -qq update -y &&
-( sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base ${build_tool_py3} python3-rosdep -y ||
-sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base ${build_tool_py2} python-rosdep -y ; ) &&
-sudo rosdep init &&
-rosdep update --include-eol-distros`;
+  const command = `export ACTIONS_ALLOW_UNSECURE_COMMANDS=true && sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 && sudo apt-get update && sudo apt-get -qq update -y && ( sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base ${build_tool_py3} python3-rosdep -y ||sudo apt-get -qq install build-essential openssh-client ros-${version}-ros-base ${build_tool_py2} python-rosdep -y ; ) && sudo rosdep init && rosdep update --include-eol-distros`;
   child_process.execSync(command, {stdio: 'inherit'});
 }
 function rosdepInstall(workspace_root: string, version: string) {
